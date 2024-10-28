@@ -44,6 +44,7 @@ func generateThumbnail(filePath string) {
 
 // Function to handle resumable upload
 func ResumableUpload(c *gin.Context) {
+	// in Soctrip env, update tempFolder to to default user: /home/media/<user-id>/temp
 	tempFolder := "./temp/"
 
 	// Ensure the temp folder exists

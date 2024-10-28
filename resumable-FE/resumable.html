@@ -35,33 +35,42 @@
             return result;
         }
 
+        function generateUpdatedFilename(originalFileName, createdBy, prefix) {
+            let fileNameRaw = originalFileName.replace(/[^A-Za-z\d]/g, '');
+
+            if (fileNameRaw.length > 30) {
+                fileNameRaw = fileNameRaw.slice(-30);
+            }
+
+            const dateTime = new Date().toISOString().replace(/[^A-Za-z\d]/g, '');
+
+            const fileBaseName = `${prefix}_${dateTime}_${createdBy}_${fileNameRaw}`;
+
+            const extension = originalFileName.includes('.') ? '.' + originalFileName.split('.').pop() : '';
+
+            const updatedFileName = fileBaseName + generateRandomString(10) + extension;
+
+            return updatedFileName;
+        }
+
         var resumable = new Resumable({
             target: 'http://localhost:8080/upload',
             chunkSize: 1 * 1024 * 1024, // 1 MB per chunk
+
             generateUniqueIdentifier: function (file) {
-                // Get epoch time and random string to create unique filename
-                const epochTime = Date.now();
-                const randomString = generateRandomString(6);
+                const customFileName = generateUpdatedFilename(file.name, "11111111-2222-3333-4444-555555555555", "vn");
 
-                // Split the original filename to insert random string and timestamp before the extension
-                const fileNameParts = file.name.split('.');
-                const extension = fileNameParts.pop();
-                const baseName = fileNameParts.join('.');
-
-                // Set custom filename
-                const customFileName = `${baseName}_${epochTime}_${randomString}.${extension}`;
                 file.fileName = customFileName;
-
-                // Return a unique identifier that uses the custom filename
                 return `${file.size}-${customFileName}`;
             }
         });
+
 
         resumable.assignBrowse(document.getElementById('upload-area'));
 
         resumable.on('fileAdded', function (file) {
             console.log("Updated filename for upload:", file.fileName);
-            resumable.upload(); // Start the upload
+            resumable.upload();
         });
 
         resumable.on('fileSuccess', function (file, message) {
@@ -76,7 +85,6 @@
             clearInterval(progressInterval);
         });
 
-        // Function to check upload progress
         function checkProgress(file) {
             const totalChunks = Math.ceil(file.size / resumable.opts.chunkSize);
 
