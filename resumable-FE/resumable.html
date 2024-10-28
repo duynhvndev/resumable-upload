@@ -26,23 +26,42 @@
     <div id="progress-display" style="text-align: center; font-size: 18px; margin-top: 20px;"></div>
 
     <script>
+        function generateRandomString(length) {
+            const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
         var resumable = new Resumable({
             target: 'http://localhost:8080/upload',
-            chunkSize: 1 * 1024 * 1024 // 1 MB per chunk
+            chunkSize: 1 * 1024 * 1024, // 1 MB per chunk
+            generateUniqueIdentifier: function (file) {
+                // Get epoch time and random string to create unique filename
+                const epochTime = Date.now();
+                const randomString = generateRandomString(6);
+
+                // Split the original filename to insert random string and timestamp before the extension
+                const fileNameParts = file.name.split('.');
+                const extension = fileNameParts.pop();
+                const baseName = fileNameParts.join('.');
+
+                // Set custom filename
+                const customFileName = `${baseName}_${epochTime}_${randomString}.${extension}`;
+                file.fileName = customFileName;
+
+                // Return a unique identifier that uses the custom filename
+                return `${file.size}-${customFileName}`;
+            }
         });
 
         resumable.assignBrowse(document.getElementById('upload-area'));
 
-        if (!resumable.support) location.href = '/some-old-crappy-uploader';
-
-        let progressInterval;
-
         resumable.on('fileAdded', function (file) {
-            console.log("File added:", file);
-            resumable.upload();
-
-            // Start checking progress every 5 seconds
-            progressInterval = setInterval(() => checkProgress(file), 5000);
+            console.log("Updated filename for upload:", file.fileName);
+            resumable.upload(); // Start the upload
         });
 
         resumable.on('fileSuccess', function (file, message) {

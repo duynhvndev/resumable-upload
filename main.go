@@ -35,6 +35,13 @@ func combineChunks(path string, totalChunks int, outputFilename string) error {
 	return nil
 }
 
+func generateThumbnail(filePath string) {
+	fmt.Println("Starting thumbnail generation for:", filePath)
+	// Simulate thumbnail generation (replace with actual implementation)
+	// Here you can call an external tool or a Go library to create the thumbnail
+	fmt.Println("Thumbnail generated for:", filePath)
+}
+
 // Function to handle resumable upload
 func ResumableUpload(c *gin.Context) {
 	tempFolder := "./temp/"
@@ -119,6 +126,9 @@ func ResumableUpload(c *gin.Context) {
 				return
 			}
 			fmt.Println("File recombination complete:", finalPath)
+
+			// Start asynchronous thumbnail generation
+			go generateThumbnail(finalPath)
 		}
 
 		c.String(http.StatusOK, "Chunk uploaded successfully")
